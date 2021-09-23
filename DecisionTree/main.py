@@ -13,4 +13,4 @@ dataDict = {
 dataLabels = ['unacc', 'acc', 'good', 'vgood']
 
 dTree = DecisionTree(dataAttrs, dataDict, dataLabels)
-dTree.train('./car/train.csv', 'E', 100)
+dTree.train('./car/train.csv', 'E', 6)

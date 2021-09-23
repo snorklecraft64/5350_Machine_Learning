@@ -38,7 +38,7 @@ class DecisionTree:
     this.attrs = attrs
     this.attrDict = attrDict
     this.labels = labels
-    this.tree = [] #:::::::::::::TODO implement tree (maybe take from library)
+    this.tree = [] #:::::::::::::TODO implement tree (each node has dictionary of children, the key being the value of the attribute (to represent the edge) and the value being the child node)
 
   ##fills trainingData with the data given in the input file
   def fillData(this, fileName):
@@ -71,7 +71,7 @@ class DecisionTree:
     for i in range(len(this.trainingData)):
       examples.append(i)
     
-    this.tree = this.ID3(examples, this.attrs, version, maxDepth)
+    this.tree = this.ID3(examples, this.attrs, version, maxDepth, 0)
   
   ##run the ID3 algorithm on the given set of examples, with the given set of attributes left to consider
   ##input:  examples:   list of rule IDs we are considering
@@ -82,19 +82,53 @@ class DecisionTree:
   ##                    'GI' = gini index
   ##        maxDepth:   the max depth the tree should reach before stopping
   ##returns: root node of the decision tree
-  def ID3(this, examples, attributes, version, maxDepth):
-    print(this.getInfoGain(examples, 'buying', 'E'))
-    print(this.getInfoGain(examples, 'maint', 'E'))
-    print(this.getInfoGain(examples, 'doors', 'E'))
-    print(this.getInfoGain(examples, 'persons', 'E'))
-    print(this.getInfoGain(examples, 'lug_boot', 'E'))
-    print(this.getInfoGain(examples, 'safety', 'E'))
-    return NotImplementedError
-    #if all same label or attributes empty
+  def ID3(this, examples, attributes, version, maxDepth, currDepth):
+    #find majority label by counting each label and finding the max
+    kList = []
+    for k in this.labels:
+      #count how many have this label
+      kSum = 0
+      for i in examples:
+        if this.trainingData[i].label == k:
+          kSum += 1 #:::::::::::::::TODO will change with fractional counts, must check count
+      
+      kList.append(kSum)
     
+    majLabel = this.labels[kList.index(max(kList))]
     
-    #else
+    #if attributes is empty, make leaf node with majority label
+    if not attributes
+      return #:leaf node ::::::::::::TODO
     
+    #if the count of the majority label is equal to the size of examples, then we know all examples have the same label
+    if max(kList) == len(examples): #::::::::::::TODO will change with fractional counts (len(examples))
+      return #:leaf node ::::::::::::TODO
+    
+    #otherwise, we must calculate info gain
+    root = #::::::::TODO root node
+    #information gains of attributes in order they are given
+    infoGains = [] 
+    for a in attributes:
+      infoGains.append(this.getInfoGain(examples, a, version))
+    
+    attr = attributes[infoGains.index(max(infoGains))]
+    
+    for v in attrDict[attr]:
+      #find S_v
+      S_v = []
+      for i in examples:
+        #if the value in the data matches the value we are looking for
+        if this.trainingData[i].attributes[attr] == v:
+          S_v.append(i)
+      
+      #if S_v is empty or we have reached the maxDepth, use majority label
+      if not S_v or currDepth == maxDepth:
+        #:::::::::::TODO change root child to a leaf node with majLabel
+      else:
+        #root child = ::::::::::::TODO
+        this.ID3(S_v, attributes.remove(attr), version, maxDepth, currDepth + 1)
+    
+    return root
   
   ##test this decision tree on examples from the given file
   def test(this, fileName):
@@ -115,8 +149,6 @@ class DecisionTree:
     else:
       _S = this.getGI(examples) #total current gini index
     
-    print(attribute + ' ' + str(_S))
-    
     #find summation term of information gain
     sum = 0
     #loop through all values the attribute can take
@@ -135,8 +167,6 @@ class DecisionTree:
         _S_v = this.getME(S_v) #majority error of S_v
       else:
         _S_v = this.getGI(S_v) #gini index of S_v
-      
-      print(v + ' ' + str(_S_v))
       
       sum += (len(S_v)/len(examples)) * _S_v #::::::::TODO will change with fractional counts, must check count
     

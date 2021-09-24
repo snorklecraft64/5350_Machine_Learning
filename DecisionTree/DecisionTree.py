@@ -204,12 +204,11 @@ class DecisionTree:
     
     majLabel = this.__labels[kList.index(max(kList))]
     
-    #if attributes is empty, make leaf node with majority label
-    if not attributes:
-      return Node(None, majLabel)
-    
-    #if the count of the majority label is equal to the size of examples, then we know all examples have the same label
-    if max(kList) == len(examples):
+    #if attributes is empty OR
+    #we have reached the max depth OR
+    #the count of the majority label is equal to the size of examples (thus all examples have the same label)
+    #THEN, make leaf node with majority label
+    if not attributes or currDepth == maxDepth or max(kList) == len(examples):
       return Node(None, majLabel)
     
     #otherwise, we must calculate info gain
@@ -232,8 +231,8 @@ class DecisionTree:
         if this.__trainingData[i].getAttrs()[attr] == v:
           S_v.append(i)
       
-      #if S_v is empty or we have reached the maxDepth, return leaf node with majority label
-      if not S_v or currDepth == maxDepth:
+      #if S_v is empty, make leaf node with majority label
+      if not S_v:
         root.add_child(Node(None, majLabel), v)
       #otherwise, we need to recurse on S_v
       else:

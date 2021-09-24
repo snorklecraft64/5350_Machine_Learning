@@ -4,17 +4,15 @@ import statistics
 
 ##represents a single example in a training data set
 class Example:
-  def __init__(this, ID, count, attributes, label):
+  def __init__(this, ID, attributes, label):
     this.__ID = ID
-    #how much space this example takes in the training data
-    this.__count = count
     #the attributes of this example (dictionary where keys are attributes and values are the value of that attribute)
     this.__attributes = attributes
     #the label given to this example
     this.__label = label
   
   def __str__(this):
-    return '[' + str(this.__ID) + ', ' + str(this.__count) + ', ' + str(this.__attributes) + ', ' + str(this.__label) + ']'
+    return '[' + str(this.__ID) + ', ' + str(this.__attributes) + ', ' + str(this.__label) + ']'
   
   def __repr__(this):
     return this.__str__()
@@ -29,8 +27,6 @@ class Example:
   
   def getID(this):
     return this.__ID
-  def getCount(this):
-    return this.__count
   def getAttrs(this):
     return this.__attributes
   def getLabel(this):
@@ -72,17 +68,20 @@ class DecisionTree:
   ##                  an empty list indicates a numerical attribute
   ##        labels:   list of labels data can have
   ##DOES NOT MODIFY attrs, attrDict, OR labels
-  def __init__(this, attrs, attrDict, labels):
+  def __init__(this, attrs, attrDict, labels, unknownVal):
     #list of training data, an example with ID x will be at trainingData[x]
     this.__trainingData = []
     this.__attrs = attrs.copy()
     this.__attrDict = attrDict.copy()
+    #dictionary of the majority value of each attribute
+    this.__majOfAttr = {}
+    this.__unknownVal = unknownVal
     this.__labels = labels.copy()
     #dictionary of numeric attributes to their thresholds
     this.__thresholds = {}
     this.__root = None #the root node of the tree
 
-  ##returns a list contatining the examples from the given file
+  ##returns a list containing the examples from the given file
   def __extractData(this, fileName):
     ID = 0
     data = []
@@ -90,51 +89,90 @@ class DecisionTree:
       for line in f:
         terms = line.strip().split(',')
         
-        #process one training example :::::::TODO code for partial counts may go here (or maybe after all full ones have completed (if statement))
         #build the dictionary of attributes
         attributes = {}
         for i in range(len(this.__attrs)):
           attributes[this.__attrs[i]] = terms[i]
         #the label is the last in data set
-        data.append(Example(ID, 1, attributes, terms[len(this.__attrs)]))
+        data.append(Example(ID, attributes, terms[len(this.__attrs)]))
         ID += 1
     
     return data
   
-  ##returns the threshold for the given attribute
-  def __findThreshold(this, attribute):
+  ##returns the threshold for the given attribute on the given data
+  def __findThreshold(this, attribute, data):
     #build list of values to find the median
     values = []
-    for ex in this.__trainingData:
+    for ex in data:
       values.append(int(ex.getAttrs()[attribute]))
     
     return statistics.median(values)
 
   ##train this decision tree on examples from the given file
-  ##input:  fileName: path to file containing data
-  ##        version:  version of information gain to use:
-  ##                  'E' = entropy
-  ##                  'ME' = majority error
-  ##                  'GI' = gini index
-  ##        maxDepth: the max depth the tree should reach before stopping
+  ##input:  fileName:   path to file containing data
+  ##        version:    version of information gain to use:
+  ##                    'E' = entropy
+  ##                    'ME' = majority error
+  ##                    'GI' = gini index
+  ##        maxDepth:   the max depth the tree should reach before stopping
   def train(this, fileName, version, maxDepth):
-    this.__trainingData = this.__extractData(fileName)
+    data = this.__extractData(fileName)
     
     #change numeric attributes to binary
     for a in this.__attrs:
       #if a certain attributes value list is empty, it is numerical
       if not this.__attrDict[a]:
-        threshold = this.__findThreshold(a)
+        threshold = this.__findThreshold(a, data)
         #update in the threshold dictionary for use in testing
         this.__thresholds[a] = threshold
         
         #update every example to make this attribute's value either above or below
         this.__attrDict[a] = ['above', 'below']
-        for ex in this.__trainingData:
+        for ex in data:
           if int(ex.getAttrs()[a]) >= threshold:
             ex.getAttrs()[a] = 'above'
           else:
             ex.getAttrs()[a] = 'below'
+    
+    #don't need to change unknown vals if we don't have an unknown val
+    if this.__unknownVal != None:
+      #split data into set of data with no unknown values, and set with unknown values
+      fullData = []
+      missingData = []
+      for ex in data:
+        unknownFound = False
+        for a in this.__attrs:
+          if ex.getAttrs()[a] == this.__unknownVal:
+            unknownFound = True
+            #no need to continue after finding an unknown val
+            break
+        
+        if unknownFound:
+          missingData.append(ex)
+        else:
+          fullData.append(ex)
+      
+      #calculate majority element of each attr in fullData
+      for a in this.__attrs:
+        vList = []
+        for v in this.__attrDict[a]:
+          count = 0
+          for ex in fullData:
+            if ex.getAttrs()[a] == v:
+              count += 1
+          vList.append(count)
+        this.__majOfAttr[a] = this.__attrDict[a][vList.index(max(vList))]
+      
+      #go thru the missing data and replace any unknown vals with the majority val
+      for ex in missingData:
+        for a in this.__attrs:
+          if ex.getAttrs()[a] == this.__unknownVal:
+            ex.getAttrs()[a] = this.__majOfAttr[a]
+      
+      this.__trainingData = fullData + missingData
+    
+    if this.__unknownVal == None:
+      this.__trainingData = data
     
     #create list of all indexes for the initial call to ID3
     examples = []
@@ -160,7 +198,7 @@ class DecisionTree:
       kSum = 0
       for i in examples:
         if this.__trainingData[i].getLabel() == k:
-          kSum += 1 #:::::::::::::::TODO will change with fractional counts, must check count
+          kSum += 1 
       
       kList.append(kSum)
     
@@ -171,7 +209,7 @@ class DecisionTree:
       return Node(None, majLabel)
     
     #if the count of the majority label is equal to the size of examples, then we know all examples have the same label
-    if max(kList) == len(examples): #::::::::::::TODO will change with fractional counts (len(examples))
+    if max(kList) == len(examples):
       return Node(None, majLabel)
     
     #otherwise, we must calculate info gain
@@ -210,6 +248,12 @@ class DecisionTree:
   def test(this, fileName):
     testingData = this.__extractData(fileName)
     
+    if this.__unknownVal != None:
+      for ex in testingData:
+        for a in this.__attrs:
+          if ex.getAttrs()[a] == this.__unknownVal:
+            ex.getAttrs()[a] = this.__majOfAttr[a]
+    
     #change numeric attributes to binary
     for a in this.__attrs:
       #if the attribute is in the threshold dictionary, it is numeric
@@ -227,9 +271,9 @@ class DecisionTree:
       exLabel = this.__decide(this.__root, example)
       
       if exLabel != example.getLabel():
-        numWrong += 1 #::::::::::::::TODO will change with partial count
+        numWrong += 1
     
-    return 100 * (numWrong / len(testingData)) #::::::::::::::TODO will change with partial count
+    return 100 * (numWrong / len(testingData))
   
   ##traverses the tree starting at the node given according to the attributes of the given example
   ##returns the label this example should take according to the decision tree
@@ -274,7 +318,7 @@ class DecisionTree:
       else:
         _S_v = this.__getGI(S_v) #gini index of S_v
       
-      sum += (len(S_v)/len(examples)) * _S_v #::::::::TODO will change with fractional counts, must check count
+      sum += (len(S_v)/len(examples)) * _S_v
     
     return _S - sum
   
@@ -290,10 +334,10 @@ class DecisionTree:
       kSum = 0
       for i in examples:
         if this.__trainingData[i].getLabel() == k:
-          kSum += 1 #:::::::::::::::TODO will change with fractional counts, must check count
+          kSum += 1
       
       #p_k is the porportion of examples with k as label
-      p_k = kSum/len(examples)  #:::::::::::::::TODO will change with fractional counts, must check count
+      p_k = kSum/len(examples)
       if p_k > 0:
         sum += p_k * math.log(p_k, 2)
     
@@ -312,13 +356,13 @@ class DecisionTree:
       kSum = 0
       for i in examples:
         if this.__trainingData[i].getLabel() == k:
-          kSum += 1 #:::::::::::::::TODO will change with fractional counts, must check count
+          kSum += 1
       
       kList.append(kSum)
     
     majCount = max(kList)
     #returns |examples without majority label| / |examples|
-    return (len(examples) - majCount) / len(examples) #:::::::::::::::TODO will change with fractional counts, must check count
+    return (len(examples) - majCount) / len(examples)
   
   ##get the gini index of the given set of examples
   def __getGI(this, examples):
@@ -332,10 +376,10 @@ class DecisionTree:
       kSum = 0
       for i in examples:
         if this.__trainingData[i].getLabel() == k:
-          kSum += 1 #:::::::::::::::TODO will change with fractional counts, must check count
+          kSum += 1
       
       #p_k is the porportion of examples with k as label
-      p_k = kSum/len(examples)  #:::::::::::::::TODO will change with fractional counts, must check count
+      p_k = kSum/len(examples)
       sum += p_k ** 2
     
     return 1 - sum

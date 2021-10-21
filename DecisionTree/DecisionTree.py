@@ -4,15 +4,17 @@ import statistics
 
 ##represents a single example in a training data set
 class Example:
-  def __init__(this, ID, attributes, label):
+  def __init__(this, ID, weight, attributes, label):
     this.__ID = ID
+    #the weight of this example
+    this.__weight = weight
     #the attributes of this example (dictionary where keys are attributes and values are the value of that attribute)
     this.__attributes = attributes
     #the label given to this example
     this.__label = label
   
   def __str__(this):
-    return '[' + str(this.__ID) + ', ' + str(this.__attributes) + ', ' + str(this.__label) + ']'
+    return '[' + str(this.__ID) + ', ' + str(this.__weight) + ' ' + str(this.__attributes) + ', ' + str(this.__label) + ']'
   
   def __repr__(this):
     return this.__str__()
@@ -31,6 +33,8 @@ class Example:
     return this.__attributes
   def getLabel(this):
     return this.__label
+  def getWeight(this):
+    return this.__weight
 
 ##represents a single node in a tree
 class Node:
@@ -81,21 +85,17 @@ class DecisionTree:
     this.__thresholds = {}
     this.__root = None #the root node of the tree
 
-  ##returns a list containing the examples from the given file
-  def __extractData(this, fileName):
-    ID = 0
+  ##returns a list containing the examples from the given dictionary
+  def __extractData(this, examples):
     data = []
-    with open(fileName, 'r') as f:
-      for line in f:
-        terms = line.strip().split(',')
-        
-        #build the dictionary of attributes
-        attributes = {}
-        for i in range(len(this.__attrs)):
-          attributes[this.__attrs[i]] = terms[i]
-        #the label is the last in data set
-        data.append(Example(ID, attributes, terms[len(this.__attrs)]))
-        ID += 1
+    for i in range(len(examples)):
+      weight = examples[i][0]
+      #build the dictionary of attributes
+      attributes = {}
+      for j in range(1, len(this.__attrs) + 1):
+        attributes[this.__attrs[j-1]] = examples[i][j]
+      #the label is the last in data set
+      data.append(Example(i, weight, attributes, examples[i][len(this.__attrs) + 1]))
     
     return data
   
@@ -109,14 +109,14 @@ class DecisionTree:
     return statistics.median(values)
 
   ##train this decision tree on examples from the given file
-  ##input:  fileName:   path to file containing data
-  ##        version:    version of information gain to use:
-  ##                    'E' = entropy
-  ##                    'ME' = majority error
-  ##                    'GI' = gini index
-  ##        maxDepth:   the max depth the tree should reach before stopping
-  def train(this, fileName, version, maxDepth):
-    data = this.__extractData(fileName)
+  ##input:  exampleData: dictionary of IDs to list representing example
+  ##        version:     version of information gain to use:
+  ##                     'E' = entropy
+  ##                     'ME' = majority error
+  ##                     'GI' = gini index
+  ##        maxDepth:    the max depth the tree should reach before stopping
+  def train(this, exampleData, version, maxDepth):
+    data = this.__extractData(exampleData)
     
     #change numeric attributes to binary
     for a in this.__attrs:
@@ -170,18 +170,18 @@ class DecisionTree:
             ex.getAttrs()[a] = this.__majOfAttr[a]
       
       this.__trainingData = fullData + missingData
-    
-    if this.__unknownVal == None:
+    else:
       this.__trainingData = data
     
     #create list of all indexes for the initial call to ID3
     examples = []
     for i in range(len(this.__trainingData)):
       examples.append(i)
-    
+      
     this.__root = this.__ID3(examples, this.__attrs, version, maxDepth, 0)
   
   ##run the ID3 algorithm on the given set of examples, with the given set of attributes left to consider
+  ##does not consider weight, treats all as having equal weight
   ##input:  examples:   list of rule IDs we are considering
   ##        attributes: list of attributes we are considering
   ##        version:    version of information gain to use:
@@ -198,17 +198,22 @@ class DecisionTree:
       kSum = 0
       for i in examples:
         if this.__trainingData[i].getLabel() == k:
-          kSum += 1 
+          kSum += this.__trainingData[i].getWeight() 
       
       kList.append(kSum)
     
     majLabel = this.__labels[kList.index(max(kList))]
     
+    #find total weight of all examples
+    examplesW = 0
+    for i in examples:
+      examplesW += this.__trainingData[i].getWeight()
+    
     #if attributes is empty OR
     #we have reached the max depth OR
     #the count of the majority label is equal to the size of examples (thus all examples have the same label)
     #THEN, make leaf node with majority label
-    if not attributes or currDepth == maxDepth or max(kList) == len(examples):
+    if not attributes or currDepth == maxDepth or max(kList) == examplesW:
       return Node(None, majLabel)
     
     #otherwise, we must calculate info gain
@@ -242,10 +247,10 @@ class DecisionTree:
     
     return root
   
-  ##test this decision tree on examples from the given file
+  ##test this decision tree on examples from the given dictionary
   ##returns the error rate in percentage
-  def test(this, fileName):
-    testingData = this.__extractData(fileName)
+  def test(this, exampleData):
+    testingData = this.__extractData(exampleData)
     
     if this.__unknownVal != None:
       for ex in testingData:
@@ -290,39 +295,47 @@ class DecisionTree:
   ##                  'ME' = majority error
   ##                  'GI' = gini index
   def __getInfoGain(this, examples, attribute, version):
+    #find total weight of examples
+    examplesW = 0
+    for i in examples:
+      examplesW += this.__trainingData[i].getWeight()
+  
     _S = 0
     if version == 'E':
-      _S = this.__getEntropy(examples) #total current entropy
+      _S = this.__getEntropy(examples, examplesW) #total current entropy
     elif version == 'ME':
-      _S = this.__getME(examples) #total current majority error
+      _S = this.__getME(examples, examplesW) #total current majority error
     else:
-      _S = this.__getGI(examples) #total current gini index
+      _S = this.__getGI(examples, examplesW) #total current gini index
     
     #find summation term of information gain
     sum = 0
     #loop through all values the attribute can take
     for v in this.__attrDict[attribute]:
-      #find S_v
+      #find S_v and its total weight
       S_v = []
+      S_vW = 0
       for i in examples:
         #if the value in the data matches the value we are looking for
         if this.__trainingData[i].getAttrs()[attribute] == v:
           S_v.append(i)
+          S_vW += this.__trainingData[i].getWeight()
       
       _S_v = 0
       if version == 'E':
-        _S_v = this.__getEntropy(S_v) #entropy of S_v
+        _S_v = this.__getEntropy(S_v, S_vW) #entropy of S_v
       elif version == 'ME':
-        _S_v = this.__getME(S_v) #majority error of S_v
+        _S_v = this.__getME(S_v, S_vW) #majority error of S_v
       else:
-        _S_v = this.__getGI(S_v) #gini index of S_v
+        _S_v = this.__getGI(S_v, S_vW) #gini index of S_v
       
-      sum += (len(S_v)/len(examples)) * _S_v
+      sum += (S_vW / examplesW) * _S_v
     
     return _S - sum
   
   ##get the entropy of the given set of examples
-  def __getEntropy(this, examples):
+  ##totalW: the total weight of all examples
+  def __getEntropy(this, examples, totalW):
     #entropy is 0 if there are no examples
     if len(examples) == 0:
       return 0
@@ -333,17 +346,17 @@ class DecisionTree:
       kSum = 0
       for i in examples:
         if this.__trainingData[i].getLabel() == k:
-          kSum += 1
+          kSum += this.__trainingData[i].getWeight()
       
-      #p_k is the porportion of examples with k as label
-      p_k = kSum/len(examples)
+      p_k = kSum / totalW
       if p_k > 0:
         sum += p_k * math.log(p_k, 2)
     
     return -sum
   
   ##get the majority error of the given set of examples
-  def __getME(this, examples):
+  ##totalW: the total weight of all examples
+  def __getME(this, examples, totalW):
     #ME is 0 if there are no examples
     if len(examples) == 0:
       return 0
@@ -355,16 +368,17 @@ class DecisionTree:
       kSum = 0
       for i in examples:
         if this.__trainingData[i].getLabel() == k:
-          kSum += 1
+          kSum += this.__trainingData[i].getWeight()
       
-      kList.append(kSum)
+      kList.append(kSum / totalW)
     
     majCount = max(kList)
     #returns |examples without majority label| / |examples|
-    return (len(examples) - majCount) / len(examples)
+    return (totalW - majCount)# / totalW
   
   ##get the gini index of the given set of examples
-  def __getGI(this, examples):
+  ##totalW: the total weight of all examples
+  def __getGI(this, examples, totalW):
     #GI is 0 if there are no examples
     if len(examples) == 0:
       return 0
@@ -375,10 +389,9 @@ class DecisionTree:
       kSum = 0
       for i in examples:
         if this.__trainingData[i].getLabel() == k:
-          kSum += 1
+          kSum += this.__trainingData[i].getWeight()
       
-      #p_k is the porportion of examples with k as label
-      p_k = kSum/len(examples)
+      p_k = kSum / totalW
       sum += p_k ** 2
     
     return 1 - sum

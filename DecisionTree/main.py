@@ -12,6 +12,29 @@ def testCar():
     'safety':   ['low', 'med', 'high']
     }
   dataLabels = ['unacc', 'acc', 'good', 'vgood']
+  
+  trainData = {}
+  with open('./car/train.csv', 'r') as f:
+    ID = 0
+    for line in f:
+      terms = line.strip().split(',')
+      list = []
+      list.append(1/1000)
+      for i in range(1, len(terms)+1):
+        list.append(terms[i-1])
+      trainData[ID] = list
+      ID += 1
+  testData = {}
+  with open('./car/test.csv', 'r') as f:
+    ID = 0
+    for line in f:
+      terms = line.strip().split(',')
+      list = []
+      list.append(1/728)
+      for i in range(1, len(terms)+1):
+        list.append(terms[i-1])
+      testData[ID] = list
+      ID += 1
 
   print('\t1\t\t2\t\t3\t\t4\t\t5\t\t6')
   print('\ttrain\ttest\ttrain\ttest\ttrain\ttest\ttrain\ttest\ttrain\ttest\ttrain\ttest')
@@ -19,98 +42,98 @@ def testCar():
   print('Entropy', end='\t')
 
   ent = DecisionTree(dataAttrs, dataDict, dataLabels, None)
-  ent.train('./car/train.csv', 'E', 1)
-  print(round(ent.test('./car/train.csv'), 2), end='\t')
-  print(round(ent.test('./car/test.csv'), 2), end='\t')
+  ent.train(trainData, 'E', 1)
+  print(round(ent.test(trainData), 2), end='\t')
+  print(round(ent.test(testData), 2), end='\t')
 
   ent = DecisionTree(dataAttrs, dataDict, dataLabels, None)
-  ent.train('./car/train.csv', 'E', 2)
-  print(round(ent.test('./car/train.csv'), 2), end='\t')
-  print(round(ent.test('./car/test.csv'), 2), end='\t')
+  ent.train(trainData, 'E', 2)
+  print(round(ent.test(trainData), 2), end='\t')
+  print(round(ent.test(testData), 2), end='\t')
 
   ent = DecisionTree(dataAttrs, dataDict, dataLabels, None)
-  ent.train('./car/train.csv', 'E', 3)
-  print(round(ent.test('./car/train.csv'), 2), end='\t')
-  print(round(ent.test('./car/test.csv'), 2), end='\t')
+  ent.train(trainData, 'E', 3)
+  print(round(ent.test(trainData), 2), end='\t')
+  print(round(ent.test(testData), 2), end='\t')
 
   ent = DecisionTree(dataAttrs, dataDict, dataLabels, None)
-  ent.train('./car/train.csv', 'E', 4)
-  print(round(ent.test('./car/train.csv'), 2), end='\t')
-  print(round(ent.test('./car/test.csv'), 2), end='\t')
+  ent.train(trainData, 'E', 4)
+  print(round(ent.test(trainData), 2), end='\t')
+  print(round(ent.test(testData), 2), end='\t')
 
   ent = DecisionTree(dataAttrs, dataDict, dataLabels, None)
-  ent.train('./car/train.csv', 'E', 5)
-  print(round(ent.test('./car/train.csv'), 2), end='\t')
-  print(round(ent.test('./car/test.csv'), 2), end='\t')
+  ent.train(trainData, 'E', 5)
+  print(round(ent.test(trainData), 2), end='\t')
+  print(round(ent.test(testData), 2), end='\t')
 
   ent = DecisionTree(dataAttrs, dataDict, dataLabels, None)
-  ent.train('./car/train.csv', 'E', 6)
-  print(round(ent.test('./car/train.csv'), 2), end='\t')
-  print(round(ent.test('./car/test.csv'), 2))
+  ent.train(trainData, 'E', 6)
+  print(round(ent.test(trainData), 2), end='\t')
+  print(round(ent.test(testData), 2))
 
   print('Majority Error', end='\t')
 
   me = DecisionTree(dataAttrs, dataDict, dataLabels, None)
-  me.train('./car/train.csv', 'ME', 1)
-  print(round(me.test('./car/train.csv'), 2), end='\t')
-  print(round(me.test('./car/test.csv'), 2), end='\t')
+  me.train(trainData, 'ME', 1)
+  print(round(me.test(trainData), 2), end='\t')
+  print(round(me.test(testData), 2), end='\t')
 
   me = DecisionTree(dataAttrs, dataDict, dataLabels, None)
-  me.train('./car/train.csv', 'ME', 2)
-  print(round(me.test('./car/train.csv'), 2), end='\t')
-  print(round(me.test('./car/test.csv'), 2), end='\t')
+  me.train(trainData, 'ME', 2)
+  print(round(me.test(trainData), 2), end='\t')
+  print(round(me.test(testData), 2), end='\t')
 
   me = DecisionTree(dataAttrs, dataDict, dataLabels, None)
-  me.train('./car/train.csv', 'ME', 3)
-  print(round(me.test('./car/train.csv'), 2), end='\t')
-  print(round(me.test('./car/test.csv'), 2), end='\t')
+  me.train(trainData, 'ME', 3)
+  print(round(me.test(trainData), 2), end='\t')
+  print(round(me.test(testData), 2), end='\t')
 
   me = DecisionTree(dataAttrs, dataDict, dataLabels, None)
-  me.train('./car/train.csv', 'ME', 4)
-  print(round(me.test('./car/train.csv'), 2), end='\t')
-  print(round(me.test('./car/test.csv'), 2), end='\t')
+  me.train(trainData, 'ME', 4)
+  print(round(me.test(trainData), 2), end='\t')
+  print(round(me.test(testData), 2), end='\t')
 
   me = DecisionTree(dataAttrs, dataDict, dataLabels, None)
-  me.train('./car/train.csv', 'ME', 5)
-  print(round(me.test('./car/train.csv'), 2), end='\t')
-  print(round(me.test('./car/test.csv'), 2), end='\t')
+  me.train(trainData, 'ME', 5)
+  print(round(me.test(trainData), 2), end='\t')
+  print(round(me.test(testData), 2), end='\t')
 
   me = DecisionTree(dataAttrs, dataDict, dataLabels, None)
-  me.train('./car/train.csv', 'ME', 6)
-  print(round(me.test('./car/train.csv'), 2), end='\t')
-  print(round(me.test('./car/test.csv'), 2))
+  me.train(trainData, 'ME', 6)
+  print(round(me.test(trainData), 2), end='\t')
+  print(round(me.test(testData), 2))
 
   print('Gini Index', end='\t')
 
   gi = DecisionTree(dataAttrs, dataDict, dataLabels, None)
-  gi.train('./car/train.csv', 'GI', 1)
-  print(round(gi.test('./car/train.csv'), 2), end='\t')
-  print(round(gi.test('./car/test.csv'), 2), end='\t')
+  gi.train(trainData, 'GI', 1)
+  print(round(gi.test(trainData), 2), end='\t')
+  print(round(gi.test(testData), 2), end='\t')
 
   gi = DecisionTree(dataAttrs, dataDict, dataLabels, None)
-  gi.train('./car/train.csv', 'GI', 2)
-  print(round(gi.test('./car/train.csv'), 2), end='\t')
-  print(round(gi.test('./car/test.csv'), 2), end='\t')
+  gi.train(trainData, 'GI', 2)
+  print(round(gi.test(trainData), 2), end='\t')
+  print(round(gi.test(testData), 2), end='\t')
 
   gi = DecisionTree(dataAttrs, dataDict, dataLabels, None)
-  gi.train('./car/train.csv', 'GI', 3)
-  print(round(gi.test('./car/train.csv'), 2), end='\t')
-  print(round(gi.test('./car/test.csv'), 2), end='\t')
+  gi.train(trainData, 'GI', 3)
+  print(round(gi.test(trainData), 2), end='\t')
+  print(round(gi.test(testData), 2), end='\t')
 
   gi = DecisionTree(dataAttrs, dataDict, dataLabels, None)
-  gi.train('./car/train.csv', 'GI', 4)
-  print(round(gi.test('./car/train.csv'), 2), end='\t')
-  print(round(gi.test('./car/test.csv'), 2), end='\t')
+  gi.train(trainData, 'GI', 4)
+  print(round(gi.test(trainData), 2), end='\t')
+  print(round(gi.test(testData), 2), end='\t')
 
   gi = DecisionTree(dataAttrs, dataDict, dataLabels, None)
-  gi.train('./car/train.csv', 'GI', 5)
-  print(round(gi.test('./car/train.csv'), 2), end='\t')
-  print(round(gi.test('./car/test.csv'), 2), end='\t')
+  gi.train(trainData, 'GI', 5)
+  print(round(gi.test(trainData), 2), end='\t')
+  print(round(gi.test(testData), 2), end='\t')
 
   gi = DecisionTree(dataAttrs, dataDict, dataLabels, None)
-  gi.train('./car/train.csv', 'GI', 6)
-  print(round(gi.test('./car/train.csv'), 2), end='\t')
-  print(round(gi.test('./car/test.csv'), 2))
+  gi.train(trainData, 'GI', 6)
+  print(round(gi.test(trainData), 2), end='\t')
+  print(round(gi.test(testData), 2))
 
 def testBankNoUnknown():
   dataAttrs = ['age', 'job', 'marital', 'education', 'default', 'balance', 'housing', 'loan', 
@@ -695,5 +718,5 @@ def testBankWithUnknown():
   print(round(gi.test('./bank/test.csv'), 2))
 
 testCar()
-testBankNoUnknown()
-testBankWithUnknown()
+#testBankNoUnknown()
+#testBankWithUnknown()

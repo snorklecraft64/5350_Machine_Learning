@@ -1,5 +1,7 @@
 import sys
+sys.path.append('../')
 from DecisionTree import *
+from Basics.Basics import *
 
 def testCar():
   dataAttrs = ['buying', 'maint', 'doors', 'persons', 'lug_boot', 'safety']
@@ -13,28 +15,8 @@ def testCar():
     }
   dataLabels = ['unacc', 'acc', 'good', 'vgood']
   
-  trainData = {}
-  with open('./car/train.csv', 'r') as f:
-    ID = 0
-    for line in f:
-      terms = line.strip().split(',')
-      list = []
-      list.append(1/1000)
-      for i in range(1, len(terms)+1):
-        list.append(terms[i-1])
-      trainData[ID] = list
-      ID += 1
-  testData = {}
-  with open('./car/test.csv', 'r') as f:
-    ID = 0
-    for line in f:
-      terms = line.strip().split(',')
-      list = []
-      list.append(1/728)
-      for i in range(1, len(terms)+1):
-        list.append(terms[i-1])
-      testData[ID] = list
-      ID += 1
+  trainData = extractData('./car/train.csv', dataAttrs)
+  testData = extractData('./car/test.csv', dataAttrs)
 
   print('\t1\t\t2\t\t3\t\t4\t\t5\t\t6')
   print('\ttrain\ttest\ttrain\ttest\ttrain\ttest\ttrain\ttest\ttrain\ttest\ttrain\ttest')

@@ -24,20 +24,6 @@ class DecisionTree:
     #dictionary of numeric attributes to their thresholds
     this.__thresholds = {}
     this.__root = None #the root node of the tree
-
-  ##returns a list containing the examples from the given dictionary
-  def __extractData(this, examples):
-    data = []
-    for i in range(len(examples)):
-      weight = examples[i][0]
-      #build the dictionary of attributes
-      attributes = {}
-      for j in range(1, len(this.__attrs) + 1):
-        attributes[this.__attrs[j-1]] = examples[i][j]
-      #the label is the last in data set
-      data.append(Example(i, weight, attributes, examples[i][len(this.__attrs) + 1]))
-    
-    return data
   
   ##returns the threshold for the given attribute on the given data
   def __findThreshold(this, attribute, data):
@@ -49,25 +35,27 @@ class DecisionTree:
     return statistics.median(values)
 
   ##train this decision tree on examples from the given file
-  ##input:  exampleData: dictionary of IDs to list representing example
-  ##        version:     version of information gain to use:
-  ##                     'E' = entropy
-  ##                     'ME' = majority error
-  ##                     'GI' = gini index
-  ##        maxDepth:    the max depth the tree should reach before stopping
-  def train(this, exampleData, version, maxDepth):
-    data = this.__extractData(exampleData)
+  ##input:  data:      list of Examples
+  ##        version:   version of information gain to use:
+  ##                   'E' = entropy
+  ##                   'ME' = majority error
+  ##                   'GI' = gini index
+  ##        maxDepth:  the max depth the tree should reach before stopping
+  def train(this, data, version, maxDepth):
     
     #change numeric attributes to binary
     for a in this.__attrs:
       #if a certain attributes value list is empty, it is numerical
       if not this.__attrDict[a]:
-        threshold = this.__findThreshold(a, data)
+        this.__attrDict[a] = ['above', 'below']
+        try:
+          threshold = this.__findThreshold(a, data)
+        except ValueError:
+          continue
         #update in the threshold dictionary for use in testing
         this.__thresholds[a] = threshold
         
         #update every example to make this attribute's value either above or below
-        this.__attrDict[a] = ['above', 'below']
         for ex in data:
           if int(ex.getAttrs()[a]) >= threshold:
             ex.getAttrs()[a] = 'above'
@@ -187,13 +175,12 @@ class DecisionTree:
     
     return root
   
-  ##test this decision tree on examples from the given dictionary
+  ##test this decision tree on given list of examples
   ##returns the error rate in percentage
-  def test(this, exampleData):
-    testingData = this.__extractData(exampleData)
+  def test(this, data):
     
     if this.__unknownVal != None:
-      for ex in testingData:
+      for ex in data:
         for a in this.__attrs:
           if ex.getAttrs()[a] == this.__unknownVal:
             ex.getAttrs()[a] = this.__majOfAttr[a]
@@ -202,22 +189,42 @@ class DecisionTree:
     for a in this.__attrs:
       #if the attribute is in the threshold dictionary, it is numeric
       if a in this.__thresholds.keys():
-        #update every example to make this attribute's value either above or below
-        for ex in testingData:
-          if int(ex.getAttrs()[a]) >= this.__thresholds[a]:
-            ex.getAttrs()[a] = 'above'
-          else:
-            ex.getAttrs()[a] = 'below'
-    
+        try:
+          #update every example to make this attribute's value either above or below
+          for ex in data:
+            if int(ex.getAttrs()[a]) >= this.__thresholds[a]:
+              ex.getAttrs()[a] = 'above'
+            else:
+              ex.getAttrs()[a] = 'below'
+        except ValueError:
+          break
+      
     numWrong = 0
-    for example in testingData:
+    for example in data:
       #traverse the tree and predict a label
       exLabel = this.__decide(this.__root, example)
       
       if exLabel != example.getLabel():
         numWrong += 1
     
-    return 100 * (numWrong / len(testingData))
+    return 100 * (numWrong / len(data))
+  
+  ##returns the label this decision tree would give to the given example
+  def getDecision(this, example):
+    #change numeric attributes to binary
+    for a in this.__attrs:
+      #if the attribute is in the threshold dictionary, it is numeric
+      if a in this.__thresholds.keys():
+        #update the example to make this attribute's value either above or below
+        try:
+            if int(example.getAttrs()[a]) >= this.__thresholds[a]:
+              example.getAttrs()[a] = 'above'
+            else:
+              example.getAttrs()[a] = 'below'
+        except ValueError:
+            break
+    
+    return this.__decide(this.__root, example)
   
   ##traverses the tree starting at the node given according to the attributes of the given example
   ##returns the label this example should take according to the decision tree

@@ -1,31 +1,33 @@
 import sys
 sys.path.append('../')
-import math
+import random
 import numpy
 import time
 from DecisionTree.DecisionTree import *
 from Basics.Basics import *
 
-##Runs AdaBoost algorithm with decision stumps as classifier
+##Runs random forest algorithm with T trees
 ##Only works when exactly two labels exist, first listed is considered positive, second is negative
 ##input:  trainFile: path to csv file containing training data
 ##        attrs:     list of attributes in the order they appear in the data
 ##        attrDict:  dictionary of attributes to a list of their possible values
 ##                   an empty list indicates a numerical attribute
 ##        labels:    list of labels data can have
-##returns: A function that takes an example as input and returns the label given by the algorithm
-def AdaBoost(trainFile, attrs, attrDict, labels, T):
+##        T:         amount of iterations
+def randomForests(trainFile, attrs, attrDict, labels, T, subset):
   data = extractData(trainFile, attrs)
-  Tdata = extractData(testFile, attrs)
-  
-  votes = []
   trees = []
+  votes = []
   
   for t in range(T+1):
+    #sample m examples with replacement
+    examples = []
+    for i in range(len(data)):
+      examples.append(data[random.randint(0, len(data)-1)].copy())
     
-    #train the decision stump
+    #learn decision tree
     tree = DecisionTree(attrs, attrDict, labels, None)
-    tree.train(data, 'E', 1)
+    tree.randTrain(data, 'E', subset)
     trees.append(tree)
     
     #calculate error
@@ -37,21 +39,8 @@ def AdaBoost(trainFile, attrs, attrDict, labels, T):
     #calculate vote
     vote = (1/2) * math.log((1-e)/e)
     votes.append(vote)
-    
-    #find values without normalization constant
-    D = []
-    for example in data:
-      if tree.getDecision(example) == example.getLabel():
-        D.append(example.getWeight() * math.exp(-vote))
-      else:
-        D.append(example.getWeight() * math.exp(vote))
-    
-    z = sum(D)
-    
-    #update weights in the examples using normalized weights
-    for i in range(len(data)):
-      data[i].setWeight(D[i] / z)
   
+  #vote the resulting trees
   def hypothesis(example):
     #evaluate sum of all trees
     sum = 0
@@ -67,7 +56,7 @@ def AdaBoost(trainFile, attrs, attrDict, labels, T):
   
   return hypothesis
 
-##Runs adaboost algorithm for every t from 0 to T and prints the train and test error
+##Runs random forest algorithm for every t from 0 to T and prints the train and test error for each t
 ##prints 1 line per t in the form '<t>\t<train error>\t<test error>'
 ##input:  trainFile: path to csv file containing training data
 ##        testFile:  path to csv file containing test data
@@ -75,18 +64,23 @@ def AdaBoost(trainFile, attrs, attrDict, labels, T):
 ##        attrDict:  dictionary of attributes to a list of their possible values
 ##                   an empty list indicates a numerical attribute
 ##        labels:    list of labels data can have
-def AdaBoostBulk(trainFile, testFile, attrs, attrDict, labels, T):
+##        T:         total amount of iterations
+def randomForestsBulk(trainFile, testFile, attrs, attrDict, labels, T, subset):
+  trainData = extractData(trainFile, attrs)
+  testData = extractData(testFile, attrs)
   data = extractData(trainFile, attrs)
-  Tdata = extractData(testFile, attrs)
-  
-  votes = []
   trees = []
+  votes = []
   
-  for t in range(T+1):
+  for t in range(1, T+1):
+    #sample m examples with replacement
+    examples = []
+    for i in range(len(data)):
+      examples.append(data[random.randint(0, len(data)-1)].copy())
     
-    #train the decision stump
+    #learn decision tree
     tree = DecisionTree(attrs, attrDict, labels, None)
-    tree.train(data, 'E', 1)
+    tree.randTrain(data, 'E', subset)
     trees.append(tree)
     
     #calculate error
@@ -98,21 +92,8 @@ def AdaBoostBulk(trainFile, testFile, attrs, attrDict, labels, T):
     #calculate vote
     vote = (1/2) * math.log((1-e)/e)
     votes.append(vote)
-    
-    #find values without normalization constant
-    D = []
-    for example in data:
-      if tree.getDecision(example) == example.getLabel():
-        D.append(example.getWeight() * math.exp(-vote))
-      else:
-        D.append(example.getWeight() * math.exp(vote))
-    
-    z = sum(D)
-    
-    #update weights in the examples using normalized weights
-    for i in range(len(data)):
-      data[i].setWeight(D[i] / z)
   
+    #vote the resulting trees
     def hypothesis(example):
       #evaluate sum of all trees
       sum = 0
@@ -127,8 +108,8 @@ def AdaBoostBulk(trainFile, testFile, attrs, attrDict, labels, T):
       return labels[1]
     
     print(t, end='\t')
-    print(test(extractData(trainFile, attrs), hypothesis), end='\t')
-    print(test(extractData(testFile, attrs), hypothesis))
+    print(test(trainData, hypothesis), end='\t')
+    print(test(testData, hypothesis))
 
 dataAttrs = ['age', 'job', 'marital', 'education', 'default', 'balance', 'housing', 'loan', 
                'contact', 'day', 'month', 'duration', 'campaign', 'pdays', 'previous', 'poutcome']
@@ -152,6 +133,15 @@ dataDict = {
     'poutcome':   ['unknown', 'other', 'failure', 'success']
     }
 dataLabels = ['yes', 'no']
+
+trainData = extractData('./bank/train.csv', dataAttrs)
+testData = extractData('./bank/test.csv', dataAttrs)
+
 #for t in range(1, 101):
 t = 500
-AdaBoostBulk('./bank/train.csv', './bank/test.csv', dataAttrs, dataDict, dataLabels, t)
+print('|G| = 2')
+H = randomForestsBulk('./bank/train.csv', './bank/test.csv', dataAttrs, dataDict, dataLabels, t, 2)
+print('|G| = 4')
+H = randomForestsBulk('./bank/train.csv', './bank/test.csv', dataAttrs, dataDict, dataLabels, t, 4)
+print('|G| = 6')
+H = randomForestsBulk('./bank/train.csv', './bank/test.csv', dataAttrs, dataDict, dataLabels, t, 6)

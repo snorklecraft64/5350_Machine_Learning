@@ -9,7 +9,7 @@
   - unknownVal: the value that denotes that a particular attribute value is unknown (None if you want to consider the unkown its own value)
  
  To train the decision tree, call the 'train' method on the decision tree object with these inputs:
-  - exampleData: a dictionary of example IDs (0 indexed) to a list of the form -> [weight, attr1Val, attr2Val, ... , attrNVal, label] representing the examples you want to train on
+  - data: list of examples you want to train on
   - version: the version of information gain to use
      ^ 'E' = entropy
      ^ 'ME' = majority error
@@ -17,4 +17,4 @@
   - maxDepth: the max depth wanted for the tree (use 1 for a stump)
 
  To test the decision tree, call the 'test' method on the decision tree object with these inputs:
-  - exampleData: a dictionary of example IDs (0 indexed) to a list of the form -> [weight, attr1Val, attr2Val, ... , attrNVal, label] representing the examples you want to test on
+  - data: list of examples you want to test on

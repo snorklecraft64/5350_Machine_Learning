@@ -2,6 +2,7 @@ import sys
 sys.path.append('../')
 import math
 import statistics
+import random
 from Basics.Basics import *
 
 ##represents a decision tree, initially untrained
@@ -105,11 +106,159 @@ class DecisionTree:
     examples = []
     for i in range(len(this.__trainingData)):
       examples.append(i)
-      
+    
     this.__root = this.__ID3(examples, this.__attrs, version, maxDepth, 0)
   
+  ##train a random decision tree based on given examples
+  ##input:  data:    list of Examples
+  ##        version: version of information gain to use:
+  ##                 'E' = entropy
+  ##                 'ME' = majority error
+  ##                 'GI' = gini index
+  ##        subset:  the size of the subset
+  def randTrain(this, data, version, subset):
+    #change numeric attributes to binary
+    for a in this.__attrs:
+      #if a certain attributes value list is empty, it is numerical
+      if not this.__attrDict[a]:
+        this.__attrDict[a] = ['above', 'below']
+        try:
+          threshold = this.__findThreshold(a, data)
+        except ValueError:
+          continue
+        #update in the threshold dictionary for use in testing
+        this.__thresholds[a] = threshold
+        
+        #update every example to make this attribute's value either above or below
+        for ex in data:
+          if int(ex.getAttrs()[a]) >= threshold:
+            ex.getAttrs()[a] = 'above'
+          else:
+            ex.getAttrs()[a] = 'below'
+    
+    #don't need to change unknown vals if we don't have an unknown val
+    if this.__unknownVal != None:
+      #split data into set of data with no unknown values, and set with unknown values
+      fullData = []
+      missingData = []
+      for ex in data:
+        unknownFound = False
+        for a in this.__attrs:
+          if ex.getAttrs()[a] == this.__unknownVal:
+            unknownFound = True
+            #no need to continue after finding an unknown val
+            break
+        
+        if unknownFound:
+          missingData.append(ex)
+        else:
+          fullData.append(ex)
+      
+      #calculate majority element of each attr in fullData
+      for a in this.__attrs:
+        vList = []
+        for v in this.__attrDict[a]:
+          count = 0
+          for ex in fullData:
+            if ex.getAttrs()[a] == v:
+              count += 1
+          vList.append(count)
+        this.__majOfAttr[a] = this.__attrDict[a][vList.index(max(vList))]
+      
+      #go thru the missing data and replace any unknown vals with the majority val
+      for ex in missingData:
+        for a in this.__attrs:
+          if ex.getAttrs()[a] == this.__unknownVal:
+            ex.getAttrs()[a] = this.__majOfAttr[a]
+      
+      this.__trainingData = fullData + missingData
+    else:
+      this.__trainingData = data
+    
+    #create list of all indexes for the initial call to randLearn
+    examples = []
+    for i in range(len(this.__trainingData)):
+      examples.append(i)
+    
+    this.__root = this.__randLearn(examples, this.__attrs, version, subset)
+
+  ##run the ID3 algorithm but with randomly selected sample of attributes each node
+  ##input:  examples:   list of rule IDs we are considering
+  ##        attributes: list of attributes we are considering
+  ##        version:    version of information gain to use:
+  ##                    'E' = entropy
+  ##                    'ME' = majority error
+  ##                    'GI' = gini index
+  ##        subset:     size of subset of attributes to use
+  ##returns: root node of the decision tree
+  def __randLearn(this, examples, attributes, version, subset):
+    #find majority label by counting each label and finding the max
+    kList = []
+    for k in this.__labels:
+      #count how many have this label
+      kSum = 0
+      for i in examples:
+        if this.__trainingData[i].getLabel() == k:
+          kSum += this.__trainingData[i].getWeight() 
+      
+      kList.append(kSum)
+    
+    majLabel = this.__labels[kList.index(max(kList))]
+    
+    #find total weight of all examples
+    examplesW = 0
+    for i in examples:
+      examplesW += this.__trainingData[i].getWeight()
+    
+    #if attributes is empty OR
+    #the count of the majority label is equal to the size of examples (thus all examples have the same label)
+    #THEN, make leaf node with majority label
+    if not attributes or max(kList) == examplesW:
+      return Node(None, majLabel)
+    
+    #randomly get subset of attributes
+    #only need to if subset is less than current left attributes
+    attrSubset = []
+    if subset < len(attributes):
+      attrsCopy = attributes.copy()
+      for i in range(subset):
+        toAdd = attrsCopy[random.randint(0, len(attrsCopy)-1)]
+        attrSubset.append(toAdd)
+        attrsCopy.remove(toAdd)
+    else:
+      attrSubset = attributes
+    
+    #find information gains of subset of attributes in order they are given
+    infoGains = [] 
+    for a in attrSubset:
+      infoGains.append(this.__getInfoGain(examples, a, version))
+    
+    #use attribute that has max info gain
+    attr = attrSubset[infoGains.index(max(infoGains))]
+  
+    root = Node(attr, None)
+    
+    #find S_v for each value the attribute can take and decide to either make a leaf node or recurse accordingly
+    for v in this.__attrDict[attr]:
+      #find S_v
+      S_v = []
+      for i in examples:
+        #if the value in the data matches the value we are looking for
+        if this.__trainingData[i].getAttrs()[attr] == v:
+          S_v.append(i)
+      
+      #if S_v is empty, make leaf node with majority label
+      if not S_v:
+        root.add_child(Node(None, majLabel), v)
+      #otherwise, we need to recurse on S_v
+      else:
+        attrsCopy = attributes.copy()
+        attrsCopy.remove(attr)
+        root.add_child(this.__randLearn(S_v, attrsCopy, version, subset), v)
+    
+    return root
+  
   ##run the ID3 algorithm on the given set of examples, with the given set of attributes left to consider
-  ##does not consider weight, treats all as having equal weight
   ##input:  examples:   list of rule IDs we are considering
   ##        attributes: list of attributes we are considering
   ##        version:    version of information gain to use:

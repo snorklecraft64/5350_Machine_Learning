@@ -1,5 +1,6 @@
 import sys
 sys.path.append('../')
+sys.path.append('./')
 from DecisionTree import *
 from Basics.Basics import *
 
@@ -699,6 +700,9 @@ def testBankWithUnknown():
   print(round(gi.test('./bank/train.csv'), 2), end='\t')
   print(round(gi.test('./bank/test.csv'), 2))
 
-testCar()
-#testBankNoUnknown()
-#testBankWithUnknown()
+if sys.argv[1] == '1':
+  testCar()
+if sys.argv[1] == '2':
+  testBankNoUnknown()
+if sys.argv[1] == '3':
+  testBankWithUnknown()

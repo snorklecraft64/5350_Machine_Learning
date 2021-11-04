@@ -1,0 +1,1 @@
+python3 Perceptron/main.py $1

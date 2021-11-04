@@ -91,7 +91,7 @@ def extractData(fileName, attrs):
   
   return data
   
-#return percentage error of a hypothesis H on data
+##return percentage error of a hypothesis H on data
 def test(data, H):
   numWrong = 0
   for example in data:

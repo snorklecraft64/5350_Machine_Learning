@@ -1,5 +1,4 @@
 import sys
-sys.path.append('../')
 import numpy
 import math
 import random
@@ -11,7 +10,8 @@ from Basics.Basics import *
 ##       attrs:     list of attributes in the order in the file
 ##       threshold: error threshold to stop when below
 ##       r:         learning rate
-def batch(trainFile, attrs, threshold, r):
+##       p:         bool to print or not
+def batch(trainFile, attrs, threshold, r, p=False):
   data = extractData(trainFile, attrs)
   #change examples to vectors, add the bias at the beginning
   attrs.insert(0, 'bias')
@@ -47,12 +47,14 @@ def batch(trainFile, attrs, threshold, r):
     newWeight = weight - r * gradient
     
     weight = newWeight
-    t += 1
     sum = 0
     for i in range(len(attrData)):
       sum += (labelData[i] - weight.dot(attrData[i])) ** 2
     loss = sum / 2
-    #print(loss)
+    if p:
+      print(str(t) + '\t' + str(loss))
+    
+    t += 1
   
   return weight
 
@@ -124,7 +126,8 @@ def tuneBatch(trainFile, attrs):
 ##       attrs:     list of attributes in the order in the file
 ##       threshold: error threshold to stop when below
 ##       r:         learning rate
-def stochastic(trainFile, attrs, threshold, r):
+##       p:         bool to print or not
+def stochastic(trainFile, attrs, threshold, r, p=False):
   data = extractData(trainFile, attrs)
   #change examples to vectors, add the bias at the beginning
   attrs.insert(0, 'bias')
@@ -155,12 +158,12 @@ def stochastic(trainFile, attrs, threshold, r):
     
     weight = numpy.array(list)
     t += 1
-    if t % 100000 == 0:
-      sum = 0
-      for p in range(len(attrData)):
-        sum += (labelData[p] - weight.dot(attrData[p])) ** 2
-      loss = sum / 2
-      print(loss)
+    sum = 0
+    for p in range(len(attrData)):
+      sum += (labelData[p] - weight.dot(attrData[p])) ** 2
+    loss = sum / 2
+  
+  print(loss)
   
   return weight#
 
@@ -213,22 +216,3 @@ def getLoss(weight, testFile, attrs):
     sum += (labelData[p] - weight.dot(attrData[p])) ** 2
   
   return sum / 2
-
-dataAttrs = [
-             'Cement',
-             'Slag',
-             'Fly ash',
-             'Water',
-             'SP',
-             'Coarse Aggr',
-             'Fine Aggr',
-            ]
-
-#weight = batch('./concrete/train.csv', dataAttrs.copy(), 14.981943657085, tuneBatch('./concrete/train.csv', dataAttrs.copy()))
-#print(weight)
-
-#print(stochastic('./concrete/train.csv', dataAttrs.copy(), 14.981943657085, 1/(2**18)))
-
-#print(getLoss(numpy.array([-0.01519665, 0.90056444, 0.7862931, 0.85104306, 1.29889404, 0.12989067, 1.57224874, 0.99869355]), './concrete/test.csv', dataAttrs))
-
-#print(analyze('./concrete/train.csv', dataAttrs))

@@ -1,5 +1,4 @@
 import sys
-sys.path.append('../')
 import random
 import numpy
 import time
@@ -108,33 +107,3 @@ def baggedTreesBulk(trainFile, testFile, attrs, attrDict, labels, T):
     print(t, end='\t')
     print(test(trainData, hypothesis), end='\t')
     print(test(testData, hypothesis))
-
-dataAttrs = ['age', 'job', 'marital', 'education', 'default', 'balance', 'housing', 'loan', 
-               'contact', 'day', 'month', 'duration', 'campaign', 'pdays', 'previous', 'poutcome']
-dataDict = {
-    'age':        [],
-    'job':        ['admin.', 'unknown', 'unemployed', 'management', 'housemaid', 'entrepreneur', 'student',
-                   'blue-collar', 'self-employed', 'retired', 'technician', 'services'],
-    'marital':    ['married', 'divorced', 'single'],
-    'education':  ['unknown', 'secondary', 'primary', 'tertiary'],
-    'default':    ['yes', 'no'],
-    'balance':    [],
-    'housing':    ['yes', 'no'],
-    'loan':       ['yes', 'no'],
-    'contact':    ['unknown', 'telephone', 'cellular'],
-    'day':        [],
-    'month':      ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'],
-    'duration':   [],
-    'campaign':   [],
-    'pdays':      [],
-    'previous':   [],
-    'poutcome':   ['unknown', 'other', 'failure', 'success']
-    }
-dataLabels = ['yes', 'no']
-
-trainData = extractData('./bank/train.csv', dataAttrs)
-testData = extractData('./bank/test.csv', dataAttrs)
-
-#for t in range(1, 101):
-t = 500
-baggedTreesBulk('./bank/train.csv', './bank/test.csv', dataAttrs, dataDict, dataLabels, t)

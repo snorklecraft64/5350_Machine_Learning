@@ -1,5 +1,4 @@
 import sys
-sys.path.append('../')
 import random
 import numpy
 import time
@@ -14,6 +13,7 @@ from Basics.Basics import *
 ##                   an empty list indicates a numerical attribute
 ##        labels:    list of labels data can have
 ##        T:         amount of iterations
+##        subset:    size of subset for IG calcs
 def randomForests(trainFile, attrs, attrDict, labels, T, subset):
   data = extractData(trainFile, attrs)
   trees = []
@@ -65,6 +65,7 @@ def randomForests(trainFile, attrs, attrDict, labels, T, subset):
 ##                   an empty list indicates a numerical attribute
 ##        labels:    list of labels data can have
 ##        T:         total amount of iterations
+##        subset:    size of subset for IG calcs
 def randomForestsBulk(trainFile, testFile, attrs, attrDict, labels, T, subset):
   trainData = extractData(trainFile, attrs)
   testData = extractData(testFile, attrs)
@@ -110,38 +111,3 @@ def randomForestsBulk(trainFile, testFile, attrs, attrDict, labels, T, subset):
     print(t, end='\t')
     print(test(trainData, hypothesis), end='\t')
     print(test(testData, hypothesis))
-
-dataAttrs = ['age', 'job', 'marital', 'education', 'default', 'balance', 'housing', 'loan', 
-               'contact', 'day', 'month', 'duration', 'campaign', 'pdays', 'previous', 'poutcome']
-dataDict = {
-    'age':        [],
-    'job':        ['admin.', 'unknown', 'unemployed', 'management', 'housemaid', 'entrepreneur', 'student',
-                   'blue-collar', 'self-employed', 'retired', 'technician', 'services'],
-    'marital':    ['married', 'divorced', 'single'],
-    'education':  ['unknown', 'secondary', 'primary', 'tertiary'],
-    'default':    ['yes', 'no'],
-    'balance':    [],
-    'housing':    ['yes', 'no'],
-    'loan':       ['yes', 'no'],
-    'contact':    ['unknown', 'telephone', 'cellular'],
-    'day':        [],
-    'month':      ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'],
-    'duration':   [],
-    'campaign':   [],
-    'pdays':      [],
-    'previous':   [],
-    'poutcome':   ['unknown', 'other', 'failure', 'success']
-    }
-dataLabels = ['yes', 'no']
-
-trainData = extractData('./bank/train.csv', dataAttrs)
-testData = extractData('./bank/test.csv', dataAttrs)
-
-#for t in range(1, 101):
-t = 500
-print('|G| = 2')
-H = randomForestsBulk('./bank/train.csv', './bank/test.csv', dataAttrs, dataDict, dataLabels, t, 2)
-print('|G| = 4')
-H = randomForestsBulk('./bank/train.csv', './bank/test.csv', dataAttrs, dataDict, dataLabels, t, 4)
-print('|G| = 6')
-H = randomForestsBulk('./bank/train.csv', './bank/test.csv', dataAttrs, dataDict, dataLabels, t, 6)

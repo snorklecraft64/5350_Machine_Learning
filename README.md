@@ -22,6 +22,11 @@
    2: get answer to Q2b
    3: get answer to Q2c
 
+ runHW4.sh
+ - Takes a parameter:
+   1: get answer to Q2a
+   2: get answer to Q2b
+
  Decision Trees:
   When creating a new decision tree object, 4 inputs are needed:
    - attrs:      list of strings representing all possible attributes/features of the data
@@ -99,3 +104,24 @@
   - trainFile: path to csv file to train on
   - attrs:     list of attributes in the order they appear in the data
   Returns the optimal weight vector
+
+ Perceptron:
+  Three perceptron methods:
+   stdPercep: run standard perceptron
+   votedPercep: run voted perceptron
+   avgPercep: run averaged perceptron
+
+  To run stdPercep method, takes 4 parameters, with 1 optional:
+  - trainFile: path to csv file to train on
+  - attrs:     list of attributes in the order they appear in the trainFile
+  - T:         max epochs
+  - posLabel:  the label in the data that should be considered positive
+  - negLabel:  the label in the data that should be considered negative
+  - seed:      (OPTIONAL) seed for RNG
+  returns weight vector as a list
+
+  To run votedPercep method, takes same parameters as stdPercep
+  returns a method that takes in a numpy array and returns the prediction as -1 or 1
+
+  To run avgPercep method, takes same parameters as stdPercep
+  returns weight vector as numpy array

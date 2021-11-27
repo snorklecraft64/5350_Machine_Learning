@@ -26,6 +26,8 @@
  - Takes a parameter:
    1: get answer to Q2a
    2: get answer to Q2b
+   3: get answer to Q3a
+   4: get answers to Q3b and Q3c
 
  Decision Trees:
   When creating a new decision tree object, 4 inputs are needed:
@@ -107,9 +109,9 @@
 
  Perceptron:
   Three perceptron methods:
-   stdPercep: run standard perceptron
+   stdPercep:   run standard perceptron
    votedPercep: run voted perceptron
-   avgPercep: run averaged perceptron
+   avgPercep:   run averaged perceptron
 
   To run stdPercep method, takes 4 parameters, with 1 optional:
   - trainFile: path to csv file to train on
@@ -125,3 +127,43 @@
 
   To run avgPercep method, takes same parameters as stdPercep
   returns weight vector as numpy array
+  
+  SVM:
+   Three SVM methods:
+    SVMPrime:     optimize primal SVM
+	SVMDual:      optimize dual SVM
+	SVMDualGauss: optimize dual SVM using guassian kernel
+   
+   To run SVMPrime method, takes 8 parameters, with 2 optional:
+   - trainFile: path to csv file to train on
+   - attrs:     list of attributes in the order they appear in the trainFile
+   - T:         max epochs
+   - posLabel:  the label in the data that should be considered positive
+   - negLabel:  the label in the data that should be considered negative
+   - C:         the C hyperparameter
+   - r_0:       the initial learning rate
+   - version:   which version of learning rate schedule to use:
+                ^ 1: r = r_0 / (1+(r_0/a)*t)
+				^ 2: r = r_0 / (1+t)
+   - a:         (optional) needed for version 1 learning rate schedule, if using version 2, it does not need to be specified
+   - seed:      (optional) seed for RNG
+   returns weight vector with the last element being the bias
+   
+   To run SVMDual method, takes 5 parameters, with 1 optional:
+   - trainFile: path to csv file to train on
+   - attrs:     list of attributes in the order they appear in the trainFile
+   - posLabel:  the label in the data that should be considered positive
+   - negLabel:  the label in the data that should be considered negative
+   - C:         the C hyperparameter
+   - seed:      (optional) seed for RNG
+   returns a tuple of 2 elements where the first element is the weight vector, and the second element is the bias
+   
+   To run SVMDualGauss method, takes 6 parameters, with 1 optional:
+   - trainFile: path to csv file to train on
+   - attrs:     list of attributes in the order they appear in the trainFile
+   - posLabel:  the label in the data that should be considered positive
+   - negLabel:  the label in the data that should be considered negative
+   - C:         the C hyperparameter
+   - gamma:     gamma parameter for the gaussian kernel
+   - seed:      (optional) seed for RNG
+   returns a tuple of 3 elements where the first element is a function that returns the weight vector times a given example, the second element is the bias, and the third element is a list of the indices of the support vectors

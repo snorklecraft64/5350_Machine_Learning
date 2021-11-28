@@ -54,6 +54,7 @@
   - attrDict:  dictionary of attributes to a list of their possible values, empty list for numerical
   - labels:    list of labels data can have
   - T:         amount of iterations to run
+  
   Returns a function thats takes an example as input and returns the prediction the model would make.
 
   There is an additional method called AdaBoostBulk which runs AdaBoost and prints the train and test data at each t. Takes an additional argument testFile, which is the path to the csv file to test on.
@@ -65,6 +66,7 @@
   - attrDict:  dictionary of attributes to a list of their possible values, empty list for numerical
   - labels:    list of labels data can have
   - T:         amount of iterations to run
+  
   Returns a function thats takes an example as input and returns the prediction the model would make.
   
   There is an additional method called BaggedTreesBulk which runs baggedTrees and prints the train and test data at each t. Takes an additional argument testFile, which is the path to the csv file to test on.
@@ -77,6 +79,7 @@
   - labels:    list of labels data can have
   - T:         amount of iterations to run
   - subset:    the size of subset used when deciding what attribute to split
+  
   Returns a function thats takes an example as input and returns the prediction the model would make.
 
   There is an additional method called RandomForestsBulk which runs randomForests and prints the train and test data at each t. Takes an additional argument testFile, which is the path to the csv file to test on.
@@ -88,6 +91,7 @@
   - threshold: error threshold to stop when below
   - r:         learning rate
   - p:         (optional) bool, true when want to print the loss at each t, false if not (false by default)
+  
   Returns the final optimized weight vector
   
   There is an additional method called tuneBatch, which takes in only the trainFile and attrs, and returns a learning rate such that batch graidient descent converges.
@@ -99,12 +103,14 @@
   - threshold: error threshold to stop when below
   - r:         learning rate
   - p:         (optional) bool, true when want to print the loss at each t, false if not (false by default)
+  
   Returns the final optimized weight vector
 
  Analyze Loss:
   The method analyze uses the analysis method for determining the minimum loss weight vector. Takes in 2 inputs:
   - trainFile: path to csv file to train on
   - attrs:     list of attributes in the order they appear in the data
+ 
   Returns the optimal weight vector
 
  Perceptron:
@@ -120,12 +126,15 @@
   - posLabel:  the label in the data that should be considered positive
   - negLabel:  the label in the data that should be considered negative
   - seed:      (OPTIONAL) seed for RNG
+  
   returns weight vector as a list
 
   To run votedPercep method, takes same parameters as stdPercep
+  
   returns a method that takes in a numpy array and returns the prediction as -1 or 1
 
   To run avgPercep method, takes same parameters as stdPercep
+  
   returns weight vector as numpy array
   
   SVM:
@@ -147,6 +156,7 @@
 				^ 2: r = r_0 / (1+t)
    - a:         (optional) needed for version 1 learning rate schedule, if using version 2, it does not need to be specified
    - seed:      (optional) seed for RNG
+   
    returns weight vector with the last element being the bias
    
    To run SVMDual method, takes 5 parameters, with 1 optional:
@@ -156,6 +166,7 @@
    - negLabel:  the label in the data that should be considered negative
    - C:         the C hyperparameter
    - seed:      (optional) seed for RNG
+   
    returns a tuple of 2 elements where the first element is the weight vector, and the second element is the bias
    
    To run SVMDualGauss method, takes 6 parameters, with 1 optional:
@@ -166,4 +177,5 @@
    - C:         the C hyperparameter
    - gamma:     gamma parameter for the gaussian kernel
    - seed:      (optional) seed for RNG
+   
    returns a tuple of 3 elements where the first element is a function that returns the weight vector times a given example, the second element is the bias, and the third element is a list of the indices of the support vectors

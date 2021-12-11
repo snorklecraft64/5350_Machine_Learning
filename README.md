@@ -28,6 +28,12 @@
    2: get answer to Q2b
    3: get answer to Q3a
    4: get answers to Q3b and Q3c
+ 
+ runHW5.sh
+ - Takes a parameter:
+   1: get answer to Q2a
+   2: get answer to Q2b
+   3: get answer to Q2c
 
  Decision Trees:
   When creating a new decision tree object, 4 inputs are needed:
@@ -137,45 +143,75 @@
   
   returns weight vector as numpy array
   
-  SVM:
-   Three SVM methods:
-    SVMPrime:     optimize primal SVM
-	SVMDual:      optimize dual SVM
-	SVMDualGauss: optimize dual SVM using guassian kernel
+ SVM:
+  Three SVM methods:
+   SVMPrime:     optimize primal SVM
+   SVMDual:      optimize dual SVM
+   SVMDualGauss: optimize dual SVM using guassian kernel
    
-   To run SVMPrime method, takes 8 parameters, with 2 optional:
-   - trainFile: path to csv file to train on
-   - attrs:     list of attributes in the order they appear in the trainFile
-   - T:         max epochs
-   - posLabel:  the label in the data that should be considered positive
-   - negLabel:  the label in the data that should be considered negative
-   - C:         the C hyperparameter
-   - r_0:       the initial learning rate
-   - version:   which version of learning rate schedule to use:
-                ^ 1: r = r_0 / (1+(r_0/a)*t)
-				^ 2: r = r_0 / (1+t)
-   - a:         (optional) needed for version 1 learning rate schedule, if using version 2, it does not need to be specified
-   - seed:      (optional) seed for RNG
+  To run SVMPrime method, takes 8 parameters, with 2 optional:
+  - trainFile: path to csv file to train on
+  - attrs:     list of attributes in the order they appear in the trainFile
+  - T:         max epochs
+  - posLabel:  the label in the data that should be considered positive
+  - negLabel:  the label in the data that should be considered negative
+  - C:         the C hyperparameter
+  - r_0:       the initial learning rate
+  - version:   which version of learning rate schedule to use:
+               ^ 1: r = r_0 / (1+(r_0/a)*t)
+			   ^ 2: r = r_0 / (1+t)
+  - a:         (optional) needed for version 1 learning rate schedule, if using version 2, it does not need to be specified
+  - seed:      (optional) seed for RNG
    
-   returns weight vector with the last element being the bias
+  returns weight vector with the last element being the bias
+  
+  To run SVMDual method, takes 5 parameters, with 1 optional:
+  - trainFile: path to csv file to train on
+  - attrs:     list of attributes in the order they appear in the trainFile
+  - posLabel:  the label in the data that should be considered positive
+  - negLabel:  the label in the data that should be considered negative
+  - C:         the C hyperparameter
+  - seed:      (optional) seed for RNG
+  
+  returns a tuple of 2 elements where the first element is the weight vector, and the second element is the bias
+  
+  To run SVMDualGauss method, takes 6 parameters, with 1 optional:
+  - trainFile: path to csv file to train on
+  - attrs:     list of attributes in the order they appear in the trainFile
+  - posLabel:  the label in the data that should be considered positive
+  - negLabel:  the label in the data that should be considered negative
+  - C:         the C hyperparameter
+  - gamma:     gamma parameter for the gaussian kernel
+  - seed:      (optional) seed for RNG
+  
+  returns a tuple of 3 elements where the first element is a function that returns the weight vector times a given example, the second element is the bias, and the third element is a list of the indices of the support vectors
    
-   To run SVMDual method, takes 5 parameters, with 1 optional:
-   - trainFile: path to csv file to train on
-   - attrs:     list of attributes in the order they appear in the trainFile
-   - posLabel:  the label in the data that should be considered positive
-   - negLabel:  the label in the data that should be considered negative
-   - C:         the C hyperparameter
-   - seed:      (optional) seed for RNG
+ Neural Networks:
+  Used by creating a neural network object, calling SGD method to train it, then using feedThrough or test methods to test output
+  To create a new neural network object, 3 parameters needed, with 4 optional:
+  - X: 	   training data as array of feature vectors (list of lists) 
+  - y: 	   array of labels for the training data
+  - width: width of the hidden layers
+  - L1W:   (optional) weights for first layer (dict of tuple to float, each tuple is of form (m,n) where m is the node the weight comes from, and n in the node the weight goes to
+  - L2W:   (optional) weights for second layer (dict of tuple to float, each tuple is of form (m,n) where m is the node the weight comes from, and n in the node the weight goes to
+  - L3W:   (optional) weights for third layer (dict of tuple to float, each tuple is of form (m,n) where m is the node the weight comes from, and n in the node the weight goes to
+  - zero:  (optional) boolean that states whether or not the weights should be initialized to 0 (default value is false)
+  
+  To run stochastic gradient descent to learn the neural network, call SGD method on the neural network object
+  SGD method takes 3 parameters:
+  - r_0: initial learning rate
+  - d:   parameter for learning rate schedule
+  - T:   number of epochs
+  After this method is done, the weights will be learned according the given training data
+  
+  To test the neural network on some data, call the test method on the neural network object.
+  test method takes 2 parameters:
+  - X: array of data to test on (list of lists)
+  - y: array of the true labels of the data (list)
+  
+  Additional possibly useful methods:
+   feedThrough method feeds a given example through the neural network, updating the values of the nodes. Takes 1 parameter:
+   - ex: the example to feed through (feature vector)
+   Doesn't return anything, just updates state of network
    
-   returns a tuple of 2 elements where the first element is the weight vector, and the second element is the bias
-   
-   To run SVMDualGauss method, takes 6 parameters, with 1 optional:
-   - trainFile: path to csv file to train on
-   - attrs:     list of attributes in the order they appear in the trainFile
-   - posLabel:  the label in the data that should be considered positive
-   - negLabel:  the label in the data that should be considered negative
-   - C:         the C hyperparameter
-   - gamma:     gamma parameter for the gaussian kernel
-   - seed:      (optional) seed for RNG
-   
-   returns a tuple of 3 elements where the first element is a function that returns the weight vector times a given example, the second element is the bias, and the third element is a list of the indices of the support vectors
+   findLoss method returns the current total loss of the neural network on the train data. Takes no parameters

@@ -98,3 +98,26 @@ def test(data, H):
     if H(example) != example.getLabel():
       numWrong += 1
   return 100 * numWrong / len(data)
+
+##returns X, a matrix of examples with bias at beginning; and y, a list of labels for each example
+def extractXY(fileName):
+  numlines = sum(1 for line in open(fileName, 'r'))
+  
+  X = []
+  y = []
+  with open(fileName, 'r') as f:
+    for line in f:
+      terms = line.strip().split(',')
+      
+      lst = []
+      lst.append(1)
+      for i in range(len(terms)-1):
+        lst.append(float(terms[i]))
+      X.append(lst)
+      temp = float(terms[len(terms)-1])
+      if temp == 0:
+        y.append(-1)
+      else:
+        y.append(1)
+  
+  return X, y
